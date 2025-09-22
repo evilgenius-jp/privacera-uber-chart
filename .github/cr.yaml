@@ -2,6 +2,9 @@
 owner: evilgenius-jp
 git-repo: privacera-uber-chart
 charts-repo: https://evilgenius-jp.github.io/privacera-uber-chart
-index-path: index.yaml
+pages-branch: main
+pages-index-path: index.yaml
+package-path: .cr-release-packages
+release-name-template: "{{ .Name }}-{{ .Version }}"
 packages-with-index: true
 skip-existing: true
