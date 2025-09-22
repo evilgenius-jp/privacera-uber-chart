@@ -1,4 +1,4 @@
-name: Release Helm Chart
+name: Release Charts
 
 on:
   push:
@@ -10,19 +10,12 @@ on:
       - 'templates/**'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   release:
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,13 +31,12 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.14.0
+          version: v3.14.4
 
-      - name: Add Helm dependencies
+      - name: Add dependency chart repos
         run: |
           helm repo add privacera-base https://evilgenius-jp.github.io/my-base-chart
           helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm repo update
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
@@ -53,14 +45,3 @@ jobs:
           config: .github/cr.yaml
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
-  deploy-pages:
-    needs: release
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
