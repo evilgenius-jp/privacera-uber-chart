@@ -1,5 +1,10 @@
 # Privacera Uber Helm Chart
 
+[![Release](https://img.shields.io/github/v/release/evilgenius-jp/privacera-uber-chart)](https://github.com/evilgenius-jp/privacera-uber-chart/releases)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+A comprehensive Helm chart for deploying Privacera components including Config Portal, Connector, and Operator.
+
 This Helm chart deploys both the Privacera Connector and Operator using the [privacera-base-chart](https://evilgenius-jp.github.io/my-base-chart) as a dependency. The base chart provides all Kubernetes resources, while this chart contains only the service-specific configuration overrides.
 
 ## Prerequisites
@@ -8,20 +13,33 @@ This Helm chart deploys both the Privacera Connector and Operator using the [pri
 - Helm 3.2.0+
 - Access to ECR repository: `944725613590.dkr.ecr.us-east-1.amazonaws.com/jp/connector`
 
-## Installation
+## Adding the Helm Repository
 
-### 1. Update Dependencies
+To use this chart, first add the Privacera Helm repository:
 
 ```bash
-cd /path/to/trust3-runtime-manager/privacera-uber-helm-chart
-helm dependency update
+helm repo add privacera-uber https://evilgenius-jp.github.io/privacera-uber-chart
+helm repo update
 ```
 
-### 2. Install the Chart
+## Installation
+
+### 1. Deploy Operator Only (d2p mode)
 
 ```bash
-helm install privacera-uber . \
-  --namespace jp-test \
+helm install my-operator privacera-uber/privacera-uber \
+  --set tags.d2p=true \
+  --namespace my-data-plane \
+  --create-namespace
+```
+
+### 2. Deploy with Custom Values File
+
+```bash
+# Download values file from config-portal UI, then:
+helm install my-operator privacera-uber/privacera-uber \
+  -f my-runtime-plane-values.yaml \
+  --namespace my-data-plane \
   --create-namespace
 ```
 

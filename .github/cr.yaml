@@ -1,0 +1,7 @@
+# Chart Releaser Configuration
+owner: evilgenius-jp
+git-repo: privacera-uber-chart
+charts-repo: https://evilgenius-jp.github.io/privacera-uber-chart
+index-path: index.yaml
+packages-with-index: true
+skip-existing: true

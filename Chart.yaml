@@ -2,8 +2,8 @@ apiVersion: v2
 name: privacera-uber
 description: Privacera Uber Helm chart with Config Portal, Connector and Operator using the privacera-base-chart
 type: application
-version: 1.0.0
-appVersion: "1.0.0"
+version: 1.0.1
+appVersion: "1.0.1"
 
 # Metadata
 home: https://github.com/privacera/trust3-runtime-manager
@@ -40,7 +40,6 @@ dependencies:
   repository: "https://evilgenius-jp.github.io/my-base-chart"
   alias: operator
   tags:
-  - self-managed
   - d2p
   - operator
 - name: mariadb
