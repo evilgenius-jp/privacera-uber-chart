@@ -2,8 +2,8 @@
 # Note: We keep our source charts in charts/ directory
 Chart.lock
 
-# Helm package files
-*.tgz
+# Chart releaser packages (temporary build artifacts)
+.cr-release-packages/
 
 # Temporary files
 .DS_Store
