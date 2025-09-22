@@ -1,0 +1,312 @@
+# Default values for privacera-uber-helm-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed to your templates.
+
+# ==========================================
+# 🌍 GLOBAL CONFIGURATION
+# ==========================================
+
+# Deployment Type Configuration using Helm Tags
+# Choose deployment type by enabling the corresponding tag
+tags:
+  # Deployment types (enable only one)
+  self-managed: true # Deploys config-portal + operator + mariadb (full self-managed platform)
+  d2p: false # Deploys operator only (data-to-platform, no UI)  
+  single: false # Deploys connector only (single connector deployment)
+
+  # Individual component tags (automatically set by deployment type, but can be overridden)
+  config-portal: false # Deploy config-portal (UI + backend) - set by self-managed
+  connector: false # Deploy connector - set by single
+  operator: false # Deploy operator - set by self-managed and d2p
+  mariadb: false # Deploy MariaDB database - set by self-managed
+
+# Usage examples:
+#   helm install --set tags.self-managed=false --set tags.d2p=true        # D2P mode
+#   helm install --set tags.self-managed=false --set tags.single=true     # Single mode  
+#   helm install --set tags.config-portal=false                          # Disable portal only
+
+# Global values shared across all components
+global:
+  # Common application settings
+  app:
+    namespace: "jp-test"
+    labels:
+      team: "privacera"
+      environment: "development"
+    annotations:
+      deployment.kubernetes.io/managed-by: "privacera-uber-chart"
+
+  # Common image settings
+  image:
+    hub: "944725613590.dkr.ecr.us-east-1.amazonaws.com"
+    pullPolicy: Always
+
+  # Common environment variables
+  env:
+    # Common application settings
+    LOG_LEVEL: "INFO"
+    TRUST3_API_KEY: "dummy_key"
+    TENANT_ID: "17568760930036"
+    TRUST3_SERVER_URL: "http://privacera-config-portal:4549"
+  # Common storage
+  emptyDirVolumes:
+    logs-dir:
+      enabled: true
+      mountPath: "/app/logs"
+      sizeLimit: "1Gi"
+
+# ==========================================
+# MARIADB DATABASE CONFIGURATION
+# ==========================================
+
+# MariaDB database for self-managed deployments
+mariadb:
+  # Component controlled by tags.self-managed and tags.mariadb
+
+  # Database configuration
+  auth:
+    rootPassword: "welcome1"
+    database: "config_db"
+    username: "config_user"
+    password: "aStrongPassword123"
+
+  # Architecture: standalone (single instance) or replication (primary-secondary)
+  architecture: standalone # Change to "replication" for HA
+
+  # Primary configuration (includes service settings)
+  primary:
+    # Persistence configuration
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: "gp3"
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+    # Service configuration (LoadBalancer for external access)
+    service:
+      type: LoadBalancer # Change to LoadBalancer for external access
+      ports:
+        mysql: 3306
+      # loadBalancerIP: ""  # Specify static IP if needed
+      # loadBalancerSourceRanges:  # Restrict access to specific IP ranges
+      #   - "10.0.0.0/8"
+      #   - "172.16.0.0/12"
+      externalTrafficPolicy: Cluster
+      annotations:
+        # AWS Load Balancer annotations for internal NLB
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+        # GCP Load Balancer annotations (uncomment for GCP)
+        # cloud.google.com/load-balancer-type: "Internal"
+        # Azure Load Balancer annotations (uncomment for Azure)
+        # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+        # Metrics and monitoring
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+
+# ==========================================
+# PRIVACERA CONFIG PORTAL CONFIGURATION
+# ==========================================
+
+# Single pod with Frontend + Backend
+config-portal:
+  # Component controlled by tags.self-managed and tags.config-portal
+
+  # NOTE: Frontend API URL is configured at Docker build time via VITE_API_BASE_URL
+  # Default: https://config-portal.nextgen.privacera.us
+  # For local development: http://localhost:4549
+
+  # Application Identity (extends global)
+  app:
+    name: "privacera-config-portal"
+
+  # Container Image (extends global)
+  image:
+    repository: "jp/config-portal"
+    tag: "latest"
+
+  # Container Configuration
+  mainContainer:
+    command: [ "python3" ]
+    args: [ "__main__.py", "run" ]
+    containerPort: 4549
+
+  # Resource Management
+  resources:
+    enabled: true
+    requests:
+      cpu: "200m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
+
+  # Component-specific Environment Variables (merged with global)
+  env:
+    # Database settings - Config Portal specific
+    DB_HOST: "privacera-uber-mariadb"
+    DB_PORT: "3306"
+    DB_USER: "config_user"
+    DB_PASSWORD: "aStrongPassword123"
+    DB_NAME: "config_db"
+    # Override the global DB_URL with correct MariaDB connection
+    DB_URL: "mysql+aiomysql://config_user:aStrongPassword123@privacera-uber-mariadb:3306/config_db"
+
+    # Server settings
+    SERVER_HOST: "0.0.0.0"
+    SERVER_PORT: "4549"
+    SERVER_WORKERS: "1"
+
+    # Application settings
+    DISABLE_AWS_SECRETS: "true"
+    FRONTEND_PATH: "/app/static"
+
+    # Events configuration
+    EVENTS_MAX_ATTEMPTS: "3"
+    EVENTS_ACK_TIMEOUT_MINUTES: "1440"
+    EVENTS_ACK_TIMEOUT_JOB_INTERVAL: "60"
+
+    # RBAC settings
+    RBAC_ENABLED: "false"
+
+    # OTEL settings
+    OTEL_SERVICE_NAME: "privacera-config-portal"
+    OTEL_ENABLE_LOG_EXPORT: "true"
+    OTEL_ENABLE_CUSTOM_METRICS: "true"
+    OTEL_ENABLE_FASTAPI_METRICS: "true"
+    OTEL_ENABLE_PYROSCOPE: "false"
+
+  # Storage (extends global)
+  emptyDirVolumes:
+    logs-dir:
+      sizeLimit: "2Gi" # Override global size
+    temp-workdir:
+      enabled: true
+      mountPath: "/tmp/work"
+      sizeLimit: "1Gi"
+
+  # Service Configuration (expose frontend + backend)
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 4549
+    targetPort: 4549
+    protocol: TCP
+
+  # Ingress Configuration (for ALB access)
+  ingress:
+    enabled: true
+    hostname: "config-portal.nextgen.privacera.us"
+    path: "/"
+    pathType: "Prefix"
+    internal: true
+    certificate:
+      arn: "arn:aws:acm:us-east-1:944725613590:certificate/0427801a-5daa-4b3d-bca2-ad198c5cc2ca"
+    group:
+      enabled: true
+      name: "internal"
+    extraAnnotations:
+      alb.ingress.kubernetes.io/backend-protocol: HTTP
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+      alb.ingress.kubernetes.io/ssl-redirect: "443"
+      alb.ingress.kubernetes.io/subnets: subnet-05a5a41841a33bc65, subnet-011cc1b3ce6e29eb3,subnet-01020c49ff1ea72de
+      alb.ingress.kubernetes.io/target-type: ip
+
+# ==========================================
+# PRIVACERA OPERATOR CONFIGURATION
+# ==========================================
+operator:
+  # Component controlled by tags.self-managed, tags.d2p and tags.operator
+
+  # Application Identity (extends global)
+  app:
+    name: "privacera-operator"
+
+  # Container Image (extends global)
+  image:
+    repository: "jp/operator"
+    tag: "latest"
+
+  # Container Configuration
+  mainContainer:
+    command: [ "python3" ]
+    args: [ "privacera_operator.py" ]
+    containerPort: 8000
+
+  # Resource Management
+  resources:
+    enabled: true
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  # Component-specific Environment Variables (merged with global)
+  env:
+    TENANT_ID: "17568760930036"
+    TRUST3_SERVER_URL: "http://privacera-config-portal:4549"
+    RUNTIME_PLANE_UUID: "70193fad-e47f-43a5-9c5d-0aab3a6c0e06"
+    OPERATOR_INSTANCE_UUID: "b1234567-89ab-cdef-0123-456789abcdef"
+
+  # Disable services (operator doesn't serve requests)
+  service:
+    enabled: false
+  ingress:
+    enabled: false
+
+# ==========================================
+# PRIVACERA CONNECTOR CONFIGURATION
+# ==========================================
+connector:
+  # Component controlled by tags.single and tags.connector
+
+  # Application Identity (extends global)
+  app:
+    name: "privacera-connector"
+
+  # Container Image (extends global)
+  image:
+    repository: "jp/connector"
+    tag: "latest"
+
+  # Container Configuration
+  mainContainer:
+    command: [ "python3" ]
+    args: [ "privacera_connector.py" ]
+    containerPort: 8000
+
+  # Resource Management
+  resources:
+    enabled: true
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  # Component-specific Environment Variables (merged with global)
+  env:
+    TENANT_ID: "17568760930036"
+    CONFIG_SERVER_URL: "http://privacera-config-portal:4549"
+    RUNTIME_PLANE_UUID: "70193fad-e47f-43a5-9c5d-0aab3a6c0e06"
+    CONNECTOR_INSTANCE_UUID: "9e332f93-5dfe-44a6-aa7a-cc5e0b80cf0d"
+
+  # Disable services (connector doesn't serve requests)
+  service:
+    enabled: false
+  ingress:
+    enabled: false
