@@ -177,6 +177,9 @@ config-portal:
     EVENTS_ACK_TIMEOUT_MINUTES: "1440"
     EVENTS_ACK_TIMEOUT_JOB_INTERVAL: "60"
 
+    # Config server URL for connector/operator deployments
+    CONFIG_SERVER_BASE_URL: "https://config-portal.nextgen.privacera.us"
+
     # RBAC settings
     RBAC_ENABLED: "false"
 

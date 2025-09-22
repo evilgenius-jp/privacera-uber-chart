@@ -1,5 +1,5 @@
-# Helm chart dependencies
-charts/
+# Helm chart dependencies (downloaded charts)
+# Note: We keep our source charts in charts/ directory
 Chart.lock
 
 # Helm package files
