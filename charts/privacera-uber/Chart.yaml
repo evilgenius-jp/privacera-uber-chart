@@ -2,8 +2,8 @@ apiVersion: v2
 name: privacera-uber
 description: Privacera Uber Helm chart with Config Portal, Connector and Operator using the privacera-base-chart
 type: application
-version: 1.0.4
-appVersion: "1.0.4"
+version: 1.0.5
+appVersion: "1.0.5"
 
 # Metadata
 home: https://github.com/privacera/trust3-runtime-manager

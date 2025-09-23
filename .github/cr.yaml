@@ -6,5 +6,5 @@ pages-branch: main
 pages-index-path: index.yaml
 package-path: .cr-release-packages
 release-name-template: "{{ .Name }}-{{ .Version }}"
-packages-with-index: true
+packages-with-index: false
 skip-existing: true
