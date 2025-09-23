@@ -5,6 +5,61 @@ entries:
       category: Application
       licenses: Apache-2.0
     apiVersion: v2
+    appVersion: 1.0.5
+    created: "2025-09-23T01:12:15.527210857Z"
+    dependencies:
+    - alias: config-portal
+      name: privacera-base-chart
+      repository: https://evilgenius-jp.github.io/my-base-chart
+      tags:
+      - self-managed
+      - config-portal
+      version: 1.0.0
+    - alias: connector
+      name: privacera-base-chart
+      repository: https://evilgenius-jp.github.io/my-base-chart
+      tags:
+      - single
+      - connector
+      version: 1.0.0
+    - alias: operator
+      name: privacera-base-chart
+      repository: https://evilgenius-jp.github.io/my-base-chart
+      tags:
+      - d2p
+      - operator
+      version: 1.0.0
+    - alias: mariadb
+      name: mariadb
+      repository: https://charts.bitnami.com/bitnami
+      tags:
+      - self-managed
+      - mariadb
+      version: 22.0.0
+    description: Privacera Uber Helm chart with Config Portal, Connector and Operator
+      using the privacera-base-chart
+    digest: 0a3ca332f1a8f6194bdd525ac5418b398fe6abe0982007116ce1bf081a50834a
+    home: https://github.com/privacera/trust3-runtime-manager
+    keywords:
+    - privacera
+    - config-portal
+    - connector
+    - operator
+    - data-security
+    - microservices
+    - helm
+    maintainers:
+    - email: engineering@privacera.com
+      name: Privacera Team
+    name: privacera-uber
+    type: application
+    urls:
+    - https://github.com/evilgenius-jp/privacera-uber-chart/releases/download/privacera-uber-1.0.5/privacera-uber-1.0.5.tgz
+    version: 1.0.5
+  - annotations:
+      category: Application
+      licenses: Apache-2.0
+    apiVersion: v2
     appVersion: 1.0.4
     created: "2025-09-22T18:16:18.644827226Z"
     dependencies:
@@ -56,4 +111,4 @@ entries:
     urls:
     - privacera-uber-1.0.4.tgz
     version: 1.0.4
-generated: "2025-09-22T18:16:18.644843437Z"
+generated: "2025-09-23T01:12:15.527223731Z"
